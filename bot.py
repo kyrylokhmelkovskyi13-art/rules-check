@@ -1,14 +1,24 @@
 import os
+import threading
+from flask import Flask
 import discord
 from discord.ext import commands
 
-# 1. Твой Discord ID
-MY_DISCORD_ID = 1307739772785135636
+# 1. Створення веб-сервера для Render Web Service
+app = Flask(__name__)
 
-# 2. Бот берет токен из переменной окружения DISCORD_TOKEN
+@app.route('/')
+def home():
+    return "Bot is alive!"
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
+# 2. Основна логіка Discord-бота
+MY_DISCORD_ID = 1307739772785135636
 BOT_TOKEN = os.getenv("DISCORD_TOKEN")
 
-# Разрешенные слова-исключения
 ALLOWED_WORDS = [
     "ноль", "нулина", "нуб", "бот", "рак", "слитый", "слабый", "анскил",
     "нефор", "позорище", "лох", "дурак", "дурень", "бездарь", "лоускил",
@@ -16,7 +26,6 @@ ALLOWED_WORDS = [
     "сопляк", "трус"
 ]
 
-# Ключевые слова нарушений
 BAD_KEYWORDS = [
     "маму", "маме", "мамы", "папу", "отца", "родных", "мать", "родню",
     "http://", "https://", "join", "connect", "t.me/", "vk.com/",
@@ -32,7 +41,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f"Бот {bot.user} успешно запущен и мониторить чат!")
+    print(f"Бот {bot.user} успішно запущений у Web Service!")
 
 @bot.event
 async def on_message(message):
@@ -42,7 +51,6 @@ async def on_message(message):
     text = message.content
     lower_text = text.lower()
 
-    # Проверка на слова-исключения
     for allowed in ALLOWED_WORDS:
         if lower_text == allowed or f" {allowed} " in lower_text:
             await bot.process_commands(message)
@@ -51,7 +59,6 @@ async def on_message(message):
     reason = None
     default_time = "1h"
 
-    # Проверка на капс (>70%)
     if is_caps_violation(text):
         reason = "3.2 Капс (>70%)"
         default_time = "30m"
@@ -89,6 +96,9 @@ def is_caps_violation(text: str) -> bool:
 
 if __name__ == "__main__":
     if not BOT_TOKEN:
-        print(" Ошибка: Переменная DISCORD_TOKEN не найдена!")
+        print("Ошибка: Переменная DISCORD_TOKEN не найдена!")
     else:
+        # Запускаємо веб-сервер в окремому потоці
+        threading.Thread(target=run_web_server, daemon=True).start()
+        # Запускаємо бота
         bot.run(BOT_TOKEN)
