@@ -4,7 +4,7 @@ from flask import Flask
 import discord
 from discord.ext import commands
 
-# 1. Створення веб-сервера для Render Web Service
+# Мікро-сервер для Web Service Render
 app = Flask(__name__)
 
 @app.route('/')
@@ -15,7 +15,7 @@ def run_web_server():
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
 
-# 2. Основна логіка Discord-бота
+# Налаштування Discord-бота
 MY_DISCORD_ID = 1307739772785135636
 BOT_TOKEN = os.getenv("DISCORD_TOKEN")
 
@@ -41,7 +41,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f"Бот {bot.user} успішно запущений у Web Service!")
+    print(f"Бот {bot.user} успішно запущений і працює!")
 
 @bot.event
 async def on_message(message):
@@ -98,7 +98,5 @@ if __name__ == "__main__":
     if not BOT_TOKEN:
         print("Ошибка: Переменная DISCORD_TOKEN не найдена!")
     else:
-        # Запускаємо веб-сервер в окремому потоці
         threading.Thread(target=run_web_server, daemon=True).start()
-        # Запускаємо бота
         bot.run(BOT_TOKEN)
